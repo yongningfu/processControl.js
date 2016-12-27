@@ -2,7 +2,7 @@
 * 异步控制包
 *  
 * 如何实现 next 
-* 需求: 用户可以定义一系列的任务，这一系列的任务可以异步并且依次执行
+* 需求: 用户可以定义一系列的任务，这一系列的任务可以异步或者同步并且依次执行
 *       用户可以利用next控制是否执行还需下一个任务 next(true) next(false)
 */
 
@@ -123,7 +123,7 @@ async.task("task6", function(next) {
 })
 
 
-async.run({"data": "those are first task data"})
+async.run({"data": "these are first task's data"})
 
 setTimeout(async.run, 2000)
 
