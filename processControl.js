@@ -7,12 +7,12 @@
 */
 
 
-function asyncControl() {
+function ProcessControl() {
 
 	this.state = 'idle'  // idle or running
 	this.willExecPosition = -1 // 记录将要执行的位置
 	this.tasks = []           // 每个元素为一个长度为2的数组 0 为 task name 1 为 执行函数
-
+	
 	this.task = (taskName, userTaskOperator) => {
 		this.tasks.push([taskName, userTaskOperator]) 
 	}
@@ -62,10 +62,66 @@ function asyncControl() {
 }
 
 
+/** 
+* arguments 里面是一个个任务 不用传递回调
+* 这个api 是额外提供给用户进行并发处理的  
+* 参数为一个个异步任务 而且函数的形式必须为 funcion(callback(err, data))
+*
+* 不把这个直接整合在 类对象中的直接原因是 ProcessControl 单单只是提供流程控制的功能
+* 即 一个task 一个task的执行 这个提供这个 并发函数的意思是 我们实际确实是会使用到
+* 故提供出来 具体如何和 ProcessControl 可以看例子
+*/
+ProcessControl.prototype.concurrentTasks = function () {
+	
 
-var async = new asyncControl()
+	var argumentsList = Array.prototype.slice.call(arguments)
+	var concurrentTasksList = argumentsList.slice(0, arguments.length - 1)
+	var callback = argumentsList[argumentsList.length - 1]
 
-async.task("task1", function(next, firstData) {
+	var listData = []
+	var count = 0
+	concurrentTasksList.forEach(function(singleTask, index) {
+		singleTask(function(err, data) {
+			count++
+			listData[index] = data
+
+			if (err) {
+				callback(err)
+				return
+			} else if (count == concurrentTasksList.length) {
+				callback(null, listData)
+			}
+		})
+	})
+}
+
+
+
+var processControl = new ProcessControl()
+
+function t1(callback) {
+	setTimeout(function() {callback(null, {"aa":11})}, 2000)
+}
+
+
+//整和其他异步方访问库的例子
+function t2(callback) {
+
+	var fs = require('fs')
+
+	// fs.readFile('test.txt', "utf8", callback)
+	fs.readFile('test.txt', "utf8", function(err, data) {
+		if (err) callback(err)
+		else callback(null, data.toString())
+	})
+}
+
+function t3(callback) {
+	setTimeout(function() {callback(null, {"aa":33})}, 100)
+}
+
+
+processControl.task("task1", function(next, firstData) {
 
 	setTimeout(function() {
 		console.log('task1')
@@ -74,7 +130,7 @@ async.task("task1", function(next, firstData) {
 	}, 1000)
 })
 
-async.task("task2", function(next) {
+processControl.task("task2", function(next) {
 
 	setTimeout(function() {
 		console.log('task2')
@@ -82,7 +138,24 @@ async.task("task2", function(next) {
 	}, 1000)
 })
 
-async.task("task3", function(next) {
+
+//并入并发的用法
+processControl.task('concurrentTasks', function(next) {
+
+	processControl.concurrentTasks(t1, t2, t3, function(err, data) {
+			if (err) {
+				throw 'concurrentTasks error'
+				next(false)
+			} else {
+				console.log(data)
+				next(true, data)
+			}
+	})
+})
+
+processControl.task("task3", function(next, receiveDataFromLastTask) {
+
+	console.log(receiveDataFromLastTask)
 
 	for (var i = 0; i < 1000000; i++) {
 		var j = j * 2
@@ -92,7 +165,7 @@ async.task("task3", function(next) {
 })
 
 
-async.task("task4", function(next, receiveDataFromLastTask) {
+processControl.task("task4", function(next, receiveDataFromLastTask) {
 
 	for (var i = 0; i < 1000000; i++) {
 		var j = j * 2
@@ -104,7 +177,23 @@ async.task("task4", function(next, receiveDataFromLastTask) {
 })
 
 
-async.task("task5", function(next) {
+processControl.task('concurrentTasks2', function(next) {
+
+	processControl.concurrentTasks(t1, t2, t3, function(err, data) {
+			if (err) {
+				throw 'concurrentTasks error'
+				next(false)
+			} else {
+				console.log(data)
+				next(true, data)
+			}
+	})
+})
+
+
+
+
+processControl.task("task5", function(next) {
 	setTimeout(function() {
 		console.log('task5')
 		next(true)
@@ -113,7 +202,7 @@ async.task("task5", function(next) {
 })
 
 
-async.task("task6", function(next) {
+processControl.task("task6", function(next) {
 
 	for (var i = 0; i < 1000000; i++) {
 		var j = j * 2
@@ -123,11 +212,11 @@ async.task("task6", function(next) {
 })
 
 
-async.run({"data": "these are first task's data"})
+processControl.run({"data": "these are first task's data"})
 
-setTimeout(async.run, 2000)
+// setTimeout(processControl.run, 2000)
 
-setTimeout(async.run,  5000, {data: 'init data'})
+// setTimeout(processControl.run,  5000, {data: 'init data'})
 
 
 
