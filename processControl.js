@@ -10,7 +10,7 @@
 function asyncControl() {
 
 	this.state = 'idle'  // idle or running
-	this.currentPosition = -1 // record the current task position -1 meana idle
+	this.willExecPosition = -1 // 记录将要执行的位置
 	this.tasks = []           // 每个元素为一个长度为2的数组 0 为 task name 1 为 执行函数
 
 	this.task = function(taskName, userTaskOperator) {
@@ -18,30 +18,29 @@ function asyncControl() {
 	}
 
 	this.next = (isAllowedToNext) => {
-		if (isAllowedToNext) {
-			this.currentPosition++
-			this.doNext()
+
+		if (this.state === 'running') {
+			if (isAllowedToNext) {
+				this.willExecPosition++
+				this.doNext()
+			} else {
+				this.state = 'idle'
+				this.willExecPosition = -1	
+			}
 		} else {
-			this.state = 'idle'
-			this.currentPosition = -1	
+			throw 'in the function, you can use next only once'
 		}
 	}
 
 	this.doNext = () => {
-		
-		if (this.currentPosition >= this.tasks.length || this.tasks.length === 0) {
+		//end state to idle
+		if (this.willExecPosition >= this.tasks.length) {
 
 			this.state = 'idle'
-			this.currentPosition = -1
+			this.willExecPosition = -1
 			return
 		}
-
-		if (this.state === 'idle') {
-			this.currentPosition = 0 
-			this.state = 'running'
-		}
-
-		this.tasks[this.currentPosition][1](this.next)
+		this.tasks[this.willExecPosition][1](this.next)
 	}
 
 
@@ -52,6 +51,12 @@ function asyncControl() {
 			return
 		}
 
+		if (this.willExecPosition >= this.tasks.length || this.tasks.length === 0) {
+			return
+		}
+
+		this.state = 'running'
+		this.willExecPosition = 0
 		this.doNext()
 	}
 }
@@ -93,6 +98,7 @@ async.task("task4", function(next) {
 	}
 	console.log('task4')
 	next(true)
+	// next(true)
 })
 
 
@@ -101,6 +107,7 @@ async.task("task5", function(next) {
 		console.log('task5')
 		next(true)
 	}, 500)
+	// next(false)
 })
 
 
