@@ -17,12 +17,12 @@ function asyncControl() {
 		this.tasks.push([taskName, userTaskOperator]) 
 	}
 
-	this.next = (isAllowedToNext) => {
+	this.next = (isAllowedToNext, data) => {
 
 		if (this.state === 'running') {
 			if (isAllowedToNext) {
 				this.willExecPosition++
-				this.doNext()
+				this.doNext(data)
 			} else {
 				this.state = 'idle'
 				this.willExecPosition = -1	
@@ -32,7 +32,7 @@ function asyncControl() {
 		}
 	}
 
-	this.doNext = () => {
+	this.doNext = (data) => {
 		//end state to idle
 		if (this.willExecPosition >= this.tasks.length) {
 
@@ -40,11 +40,11 @@ function asyncControl() {
 			this.willExecPosition = -1
 			return
 		}
-		this.tasks[this.willExecPosition][1](this.next)
+		this.tasks[this.willExecPosition][1](this.next, data)
 	}
 
 
-	this.run = () => {
+	this.run = (data) => {
 
 		if (this.state === 'running') {
 			console.log('sorry there are some tasks are running')
@@ -57,7 +57,7 @@ function asyncControl() {
 
 		this.state = 'running'
 		this.willExecPosition = 0
-		this.doNext()
+		this.doNext(data)
 	}
 }
 
@@ -65,10 +65,11 @@ function asyncControl() {
 
 var async = new asyncControl()
 
-async.task("task1", function(next) {
+async.task("task1", function(next, firstData) {
 
 	setTimeout(function() {
 		console.log('task1')
+		console.log(firstData.data)
 		next(true)
 	}, 1000)
 })
@@ -87,16 +88,17 @@ async.task("task3", function(next) {
 		var j = j * 2
 	}
 	console.log('task3')
-	next(true)
+	next(true, {"data": "task3' data"})
 })
 
 
-async.task("task4", function(next) {
+async.task("task4", function(next, receiveDataFromLastTask) {
 
 	for (var i = 0; i < 1000000; i++) {
 		var j = j * 2
 	}
 	console.log('task4')
+	console.log('the data from task3', receiveDataFromLastTask.data)
 	next(true)
 	// next(true)
 })
@@ -121,11 +123,11 @@ async.task("task6", function(next) {
 })
 
 
-async.run()
+async.run({"data": "those are first task data"})
 
 setTimeout(async.run, 2000)
 
-setTimeout(async.run, 5000)
+setTimeout(async.run,  5000, {data: 'init data'})
 
 
 
