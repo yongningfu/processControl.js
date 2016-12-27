@@ -69,7 +69,8 @@ function ProcessControl() {
 *
 * 不把这个直接整合在 类对象中的直接原因是 ProcessControl 单单只是提供流程控制的功能
 * 即 一个task 一个task的执行 这个提供这个 并发函数的意思是 我们实际确实是会使用到
-* 故提供出来 具体如何和 ProcessControl 可以看例子
+* 比如并发的查找数据库操作，故提供出来 方便开发者使用
+* 具体如何和 ProcessControl 可以看例子
 */
 ProcessControl.prototype.concurrentTasks = function () {
 	
@@ -214,9 +215,9 @@ processControl.task("task6", function(next) {
 
 processControl.run({"data": "these are first task's data"})
 
-// setTimeout(processControl.run, 2000)
+setTimeout(processControl.run, 2000)
 
-// setTimeout(processControl.run,  5000, {data: 'init data'})
+setTimeout(processControl.run,  8000, {data: 'init data'})
 
 
 
