@@ -13,7 +13,7 @@ function asyncControl() {
 	this.willExecPosition = -1 // 记录将要执行的位置
 	this.tasks = []           // 每个元素为一个长度为2的数组 0 为 task name 1 为 执行函数
 
-	this.task = function(taskName, userTaskOperator) {
+	this.task = (taskName, userTaskOperator) => {
 		this.tasks.push([taskName, userTaskOperator]) 
 	}
 
