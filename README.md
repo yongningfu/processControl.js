@@ -19,7 +19,7 @@ js异步解决方案已经很多了,各家都有各家的好处
 | task      | 定义一个任务       |
 | next      | 用户使用next控制task的执行和任务直接的数据传递      |
 | run      |  让所有的任务按顺序run      |
-| concurrentTasks       | 提供的异步并发访问工具      |
+| UtilsConcurrentTasks       | 提供的异步并发访问工具      |
 
 **目前实现的功能:**
 - 任务的异常按流程执行
@@ -73,7 +73,7 @@ processControl.task('concurrentTasks', function(next) {
 
 	// concurrentTask1, concurrentTask2, concurrentTask3 为一个个异步函数 结果按
 	//顺序返回数组
-	processControl.concurrentTasks(concurrentTask1, concurrentTask2, concurrentTask3, function(err, data) {
+	processControl.UtilsConcurrentTasks(concurrentTask1, concurrentTask2, concurrentTask3, function(err, data) {
 			if (err) {
 				throw 'concurrentTasks error'
 				next(false)

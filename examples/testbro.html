@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+
+</body>
+<script type="text/javascript" src="../processControl.js"></script>
+
+<script type="text/javascript">
+	
+var processControl = new ProcessControl()
+
+processControl.task("task1", function(next, firstData) {
+
+	setTimeout(function() {
+		console.log('task1')
+		console.log(firstData.data)
+		next(true)
+	}, 1000)
+})
+
+processControl.task("task2", function(next) {
+
+	setTimeout(function() {
+		console.log('task2')
+		next(true)
+	}, 100)
+})
+
+
+processControl.run({"data":"init data"})
+</script>
+</html>
